@@ -1,0 +1,126 @@
+import {
+    Button,
+    HorizontalBox,
+    VerticalBox,
+    AboutSlint
+} from "std-widgets.slint";
+import {
+    SeparatorLine
+} from "widgets/SeparatorLine.slint";
+
+import "./font/segoeui.ttf";
+
+export component AppWindow inherits Window {
+    in-out property<int> Width: 455;
+    in-out property<int> Height: 390;
+    in-out property<string> Version: "0.0.0";
+    in-out property<string> OS: "Windows";
+    in-out property<string> OSVersion: "11";
+    in-out property<string> WSLVersions: "WSL version: 2.3.17.0\nKernel version: 5.15.153.1-2\nWSLg version: 1.0.64\nMSRDC version: 1.2.5326\nDirect3D version: 1.611.1-81528511\nDXCore version: 10.0.26100.1-240331-1435.ge-release\nWindows version: 10.0.26120.1542";
+    callback Close();
+
+    height: root.Height * 1px;
+    width: root.Width * 1px;
+
+    background: #f0f0f0;
+
+    default-font-family: "Segoe UI Regular";
+    default-font-size: 12px;
+
+    title: "About Torizon";
+
+    VerticalLayout {
+        spacing: 1px;
+        alignment: LayoutAlignment.start;
+
+        HorizontalLayout {
+            alignment: center;
+            padding-top: 13px;
+
+            // logo
+            Image {
+                source: @image-url("./img/torizonoslogo.png");
+                image-rendering: ImageRendering.pixelated;
+                width: 336px;
+                height: 64px;
+            }
+        }
+
+        SeparatorLine {}
+
+        VerticalLayout {
+            padding-left: 50px;
+            spacing: 2px;
+
+            Text {
+                text: "Torizon for WSL 2";
+                color: #000000;
+            }
+
+            Text {
+                text: "Version " + root.Version + " (" + root.OS + " " + root.OSVersion + ")";
+                color: #000000;
+            }
+
+            Text {
+                text: "© 2024 Toradex AG. All rights reserved.";
+                color: #000000;
+            }
+        }
+
+        // VerticalLayout {
+        //     padding-left: 50px;
+        //     padding-right: 20px;
+        //     padding-top: 30px;
+        //     spacing: 2px;
+
+        //     Text {
+        //         text: "Torizon Development Environment for WSL 2 is based on Debian Bookworm and includes other third party open/free software, is a custom Linux distribution for WSL 2 that is optimized for Torizon development.";
+        //         color: #000000;
+        //     }
+        // }
+
+        VerticalLayout {
+            padding-left: 50px;
+            padding-right: 20px;
+            padding-top: 20px;
+            spacing: 2px;
+
+            Text {
+                text: root.WSLVersions;
+                color: #000000;
+            }
+        }
+
+        VerticalLayout {
+            padding-left: 50px;
+            padding-right: 20px;
+            padding-top: 30px;
+            spacing: 2px;
+
+            Text {
+                accessible-role: AccessibleRole.button;
+                text: "This product is open source licensed under the MIT License. The source code is available on GitHub:\nhttps://github.com/commontorizon";
+                color: #000000;
+            }
+        }
+    }
+
+    VerticalLayout {
+        alignment: LayoutAlignment.end;
+        padding: 7px;
+
+        HorizontalLayout {
+            alignment: LayoutAlignment.end;
+
+            Button {
+                text: "OK";
+                width: 80px;
+                height: 25px;
+                clicked => {
+                    root.Close();
+                }
+            }
+        }
+    }
+}

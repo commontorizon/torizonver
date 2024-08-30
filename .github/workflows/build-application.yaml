@@ -1,0 +1,52 @@
+name: Build & Deploy TorizonCore
+on:
+  - push
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    name: Build & Deploy
+    env:
+      RUST_BACKTRACE: 1
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup
+        shell: pwsh
+        run: |
+          sudo apt-get -q -y install `
+            libfontconfig1 `
+            mesa-utils `
+            x11-xserver-utils `
+            libxkbcommon-x11-0 `
+            libfreetype6 `
+            libgbm1 `
+            libinput10 `
+            libxkbcommon0 `
+            xkb-data `
+            xvfb
+
+      - name: Build
+        shell: pwsh
+        run: |
+          xvfb-run pwsh -f ./.vscode/tasks.ps1 run build-debug-local
+
+      - name: Build Release
+        shell: pwsh
+        run: |
+          xvfb-run pwsh -f ./.vscode/tasks.ps1 run publish-release-amd64
+
+      - name: Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GH_TKN }}
+        run: |
+          $_tag = Get-Content -Path ./VERSION
+          zip -r "torizonver-$_tag.zip" ./bin/Release/net8.0/linux-x64/publish/
+          gh repo set-default commontorizon/torizonver
+          gh release create `
+            --target main $_tag `
+            -t "torizonver / About App $_tag" `
+            -n "torizonver / About App $_tag" `
+            "torizonver-$_tag.zip"
