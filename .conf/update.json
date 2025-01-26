@@ -1,6 +1,0 @@
-[
-    {
-        "source": "torizonver.csproj",
-        "target": "$projectName.csproj"
-    }
-]
