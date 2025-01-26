@@ -1,5 +1,39 @@
 {
     "version": "2.0.0",
     "tasks": [
+        {
+            "label": "run-app",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "main.py"
+            ],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "dependsOrder": "sequence",
+            "icon": {
+                "id": "run",
+                "color": "terminal.ansiWhite"
+            }
+        },
+        {
+            "label": "create-package-zip",
+            "type": "shell",
+            "command": "zip",
+            "args": [
+                "-r",
+                "torizonver-${env:VERSION}.zip",
+                "./ui", "main.py", "Pipfile", "Pipfile.lock", "torizonver"
+            ],
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "dependsOrder": "sequence",
+            "icon": {
+                "id": "package",
+                "color": "terminal.ansiWhite"
+            }
+        }
     ]
 }

@@ -16,6 +16,7 @@ export component AppWindow inherits Window {
     in-out property<string> Version: "0.0.0";
     in-out property<string> OS: "Windows";
     in-out property<string> OSVersion: "11";
+    in-out property<string> OSArch : "x86_64";
     in-out property<string> WSLVersions: "WSL version: 2.3.17.0\nKernel version: 5.15.153.1-2\nWSLg version: 1.0.64\nMSRDC version: 1.2.5326\nDirect3D version: 1.611.1-81528511\nDXCore version: 10.0.26100.1-240331-1435.ge-release\nWindows version: 10.0.26120.1542";
     callback Close();
 
@@ -59,6 +60,11 @@ export component AppWindow inherits Window {
 
             Text {
                 text: "Version " + root.Version + " (" + root.OS + " " + root.OSVersion + ")";
+                color: #000000;
+            }
+
+            Text {
+                text: "Architecture: " + root.OSArch;
                 color: #000000;
             }
 

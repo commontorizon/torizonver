@@ -1,6 +1,8 @@
 name: Build & Deploy TorizonCore
 on:
-  - push
+  push:
+    branches:
+      - main
 
 jobs:
   build-deploy:
@@ -13,40 +15,77 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Setup
-        shell: pwsh
+        shell: bash
         run: |
-          sudo apt-get -q -y install `
-            libfontconfig1 `
-            mesa-utils `
-            x11-xserver-utils `
-            libxkbcommon-x11-0 `
-            libfreetype6 `
-            libgbm1 `
-            libinput10 `
-            libxkbcommon0 `
-            xkb-data `
-            xvfb
+          sudo apt-get -q -y install \
+            libfontconfig1 \
+            mesa-utils \
+            x11-xserver-utils \
+            libxkbcommon-x11-0 \
+            libfreetype6 \
+            libgbm1 \
+            libinput10 \
+            libxkbcommon0 \
+            xkb-data \
+            xvfb \
+            x11-apps \
+            imagemagick \
+            python3 \
+            python3-pip \
+            pipx \
+            pipenv
 
-      - name: Build
-        shell: pwsh
-        run: |
-          xvfb-run pwsh -f ./.vscode/tasks.ps1 run build-debug-local
+          sudo bash ./.conf/setup-xonsh.sh
+          sudo ln -s /root/.local/bin/xonsh /usr/bin/xonsh
 
-      - name: Build Release
-        shell: pwsh
+      - name: Test
+        shell: bash
         run: |
-          xvfb-run pwsh -f ./.vscode/tasks.ps1 run publish-release-amd64
+          VERSION=$(cat ./VERSION)
+          export VERSION=$VERSION
+
+          xonsh ./.vscode/tasks.xsh run create-package-zip
+
+          # mimic a installation
+          mkdir -p /opt/torizonver
+          cp torizonver-$VERSION.zip /opt/torizonver/
+          cd /opt/torizonver
+          unzip torizonver-$VERSION.zip
+          sudo pipenv sync
+          cd -
+
+          # run the virtual framebuffer
+          chmod +x ./torizonver
+          sudo xvfb-run -a -s "-screen 0 1920x1080x24" sh -c "./torizonver & APP_ID=$! && sleep 5s && xwd -root -silent | convert xwd:- screenshot.png && wait $APP_ID"
+
+          # wait for the virtual framebuffer to finish
+          APP_EXIT_CODE=$?
+          echo "Application exited with code $APP_EXIT_CODE"
+          if [ $APP_EXIT_CODE -ne 0 ]; then
+            exit $APP_EXIT_CODE
+          fi
+
+      - name: Publish Screenshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshot
+          path: install-test/screenshot.png
 
       - name: Release
-        shell: pwsh
+        shell: xonsh {0}
         env:
           GH_TOKEN: ${{ secrets.GH_TKN }}
         run: |
-          $_tag = Get-Content -Path ./VERSION
-          zip -r "torizonver-$_tag.zip" ./bin/Release/net8.0/linux-x64/publish/
+          $UPDATE_OS_ENVIRON = True
+          $XONSH_SHOW_TRACEBACK = True
+          $RAISE_SUBPROC_ERROR = True
+          $VERSION = $(cat ./VERSION)
+
+          xonsh ./.vscode/tasks.xsh run create-package-zip
+
           gh repo set-default commontorizon/torizonver
-          gh release create `
-            --target main $_tag `
-            -t "torizonver / About App $_tag" `
-            -n "torizonver / About App $_tag" `
-            "torizonver-$_tag.zip"
+          gh release create \
+            --target main $VERSION \
+            -t "torizonver / About App $VERSION" \
+            -n "torizonver / About App $VERSION" \
+            "torizonver-$VERSION.zip"
